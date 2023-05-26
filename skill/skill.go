@@ -25,24 +25,24 @@ func NewSkillNoErr[S, T any](mutation func(S) T) *Skill[S, T] {
 			return mutation(s), nil
 		}}
 }
-func (s *Skill[S, T]) Apply(body Body[S]) Body[T] {
-	result := make([]Record[T], len(body.Values))
-	for i, record := range body.Values {
+func (s *Skill[S, T]) Apply(b body[S]) body[T] {
+	result := make([]record[T], len(b.Values))
+	for i, record := range b.Values {
 		result[i].RecordID = record.RecordID
 		value, err := s.mutation(record.Data)
 		if err != nil {
-			result[i].Errors = append(result[i].Errors, NewMessage(err.Error()))
+			result[i].Errors = append(result[i].Errors, newMessage(err.Error()))
 		} else {
 			result[i].Data = value
 		}
 	}
-	return Body[T]{Values: result}
+	return body[T]{Values: result}
 }
 
 func (s *Skill[S, T]) Flatten() func([]byte) ([]byte, error) {
-	return func(body []byte) ([]byte, error) {
-		var b Body[S]
-		if err := json.Unmarshal(body, &b); err != nil {
+	return func(input []byte) ([]byte, error) {
+		var b body[S]
+		if err := json.Unmarshal(input, &b); err != nil {
 			return []byte{}, ErrParse
 		}
 		result := s.Apply(b)

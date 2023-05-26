@@ -6,7 +6,7 @@ var (
 	ErrInputNotFound = errors.New("input not found")
 )
 
-type Data struct {
+type StringData struct {
 	Input  string `json:"input,omitempty"`
 	Output string `json:"output,omitempty"`
 }
