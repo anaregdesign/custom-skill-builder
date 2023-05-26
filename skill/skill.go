@@ -6,57 +6,43 @@ import (
 )
 
 var (
-	ErrParse              = errors.New("parse error")
-	ErrInputFieldNotFound = errors.New("input field not found")
+	ErrParse = errors.New("parse error")
 )
 
 type Skill[S, T any] struct {
-	inputFieldName  string
-	outputFieldName string
-	mutation        func(S) (T, error)
+	mutation func(S) (T, error)
 }
 
-func NewSkill[S, T any](input string, output string, mutation func(S) (T, error)) *Skill[S, T] {
+func NewSkill[S, T any](mutation func(S) (T, error)) *Skill[S, T] {
 	return &Skill[S, T]{
-		inputFieldName:  input,
-		outputFieldName: output,
-		mutation:        mutation,
+		mutation: mutation,
 	}
 }
 
-func NewSkillNoErr[S, T any](input string, output string, mutation func(S) T) *Skill[S, T] {
+func NewSkillNoErr[S, T any](mutation func(S) T) *Skill[S, T] {
 	return &Skill[S, T]{
-		inputFieldName:  input,
-		outputFieldName: output,
 		mutation: func(s S) (T, error) {
 			return mutation(s), nil
 		}}
 }
-
-func (s *Skill[S, T]) Apply(body Body[S]) Body[T] {
-	result := make([]Record[T], len(body.Values))
-	for i, record := range body.Values {
+func (s *Skill[S, T]) Apply(b body[S]) body[T] {
+	result := make([]record[T], len(b.Values))
+	for i, record := range b.Values {
 		result[i].RecordID = record.RecordID
-		result[i].Data = make(map[string]T)
-		v, ok := record.Data[s.inputFieldName]
-		if !ok {
-			result[i].Errors = append(result[i].Errors, NewMessage(ErrInputFieldNotFound.Error()))
-			continue
-		}
-		value, err := s.mutation(v)
+		value, err := s.mutation(record.Data)
 		if err != nil {
-			result[i].Errors = append(result[i].Errors, NewMessage(err.Error()))
+			result[i].Errors = append(result[i].Errors, newMessage(err.Error()))
 		} else {
-			result[i].Data[s.outputFieldName] = value
+			result[i].Data = value
 		}
 	}
-	return Body[T]{Values: result}
+	return body[T]{Values: result}
 }
 
 func (s *Skill[S, T]) Flatten() func([]byte) ([]byte, error) {
-	return func(body []byte) ([]byte, error) {
-		var b Body[S]
-		if err := json.Unmarshal(body, &b); err != nil {
+	return func(input []byte) ([]byte, error) {
+		var b body[S]
+		if err := json.Unmarshal(input, &b); err != nil {
 			return []byte{}, ErrParse
 		}
 		result := s.Apply(b)
