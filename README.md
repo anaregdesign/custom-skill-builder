@@ -38,7 +38,6 @@ svc.Run()
 ### Testing the skill
 You can call the skills with the endpoint `skills/{skillName}`, and values of data are json-serialized struct of skill definition.
 
-```http request
 
 ```http request
 POST http://localhost:8080/skills/lower
