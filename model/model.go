@@ -6,6 +6,11 @@ var (
 	ErrInputNotFound = errors.New("input not found")
 )
 
+type Data[T any] struct {
+	Input  T `json:"input,omitempty"`
+	Output T `json:"output,omitempty"`
+}
+
 type StringData struct {
 	Input  string `json:"input,omitempty"`
 	Output string `json:"output,omitempty"`

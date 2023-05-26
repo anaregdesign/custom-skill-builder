@@ -15,11 +15,11 @@ func main() {
 		return &model.StringData{Output: strings.ToLower(d.Input)}, nil
 	})
 
-	upperSkill := skill.NewSkill(func(d *model.StringData) (*model.StringData, error) {
+	upperSkill := skill.NewSkill(func(d *model.Data[string]) (*model.Data[string], error) {
 		if d.Input == "" {
 			return nil, model.ErrInputNotFound
 		}
-		return &model.StringData{Output: strings.ToUpper(d.Input)}, nil
+		return &model.Data[string]{Output: strings.ToUpper(d.Input)}, nil
 	})
 
 	splitSkill := skill.NewSkill(func(d *model.StringData) (*model.CollectionStringData, error) {
