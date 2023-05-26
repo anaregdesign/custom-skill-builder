@@ -14,18 +14,21 @@ func main() {
 		}
 		return &model.StringData{Output: strings.ToLower(d.Input)}, nil
 	})
+
 	upperSkill := skill.NewSkill(func(d *model.StringData) (*model.StringData, error) {
 		if d.Input == "" {
 			return nil, model.ErrInputNotFound
 		}
 		return &model.StringData{Output: strings.ToUpper(d.Input)}, nil
 	})
+
 	splitSkill := skill.NewSkill(func(d *model.StringData) (*model.CollectionStringData, error) {
 		if d.Input == "" {
 			return nil, model.ErrInputNotFound
 		}
 		return &model.CollectionStringData{Output: strings.Split(d.Input, " ")}, nil
 	})
+
 	countWordsSkill := skill.NewSkill(func(d *model.StringData) (*model.IntData, error) {
 		if d.Input == "" {
 			return nil, model.ErrInputNotFound
