@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+# Idea
+custom-skill-builder.iml
+.idea
