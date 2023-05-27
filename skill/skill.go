@@ -1,6 +1,7 @@
 package skill
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 )
@@ -10,26 +11,20 @@ var (
 )
 
 type Skill[S, T any] struct {
-	mutation func(S) (T, error)
+	mutation func(context.Context, S) (T, error)
 }
 
-func NewSkill[S, T any](mutation func(S) (T, error)) *Skill[S, T] {
+func NewSkill[S, T any](mutation func(context.Context, S) (T, error)) *Skill[S, T] {
 	return &Skill[S, T]{
 		mutation: mutation,
 	}
 }
 
-func NewSkillNoErr[S, T any](mutation func(S) T) *Skill[S, T] {
-	return &Skill[S, T]{
-		mutation: func(s S) (T, error) {
-			return mutation(s), nil
-		}}
-}
-func (s *Skill[S, T]) Apply(b body[S]) body[T] {
+func (s *Skill[S, T]) Apply(ctx context.Context, b body[S]) body[T] {
 	result := make([]record[T], len(b.Values))
 	for i, record := range b.Values {
 		result[i].RecordID = record.RecordID
-		value, err := s.mutation(record.Data)
+		value, err := s.mutation(ctx, record.Data)
 		if err != nil {
 			result[i].Errors = append(result[i].Errors, newMessage(err.Error()))
 		} else {
@@ -39,13 +34,13 @@ func (s *Skill[S, T]) Apply(b body[S]) body[T] {
 	return body[T]{Values: result}
 }
 
-func (s *Skill[S, T]) Flatten() func([]byte) ([]byte, error) {
-	return func(input []byte) ([]byte, error) {
+func (s *Skill[S, T]) Flatten() func(context.Context, []byte) ([]byte, error) {
+	return func(ctx context.Context, input []byte) ([]byte, error) {
 		var b body[S]
 		if err := json.Unmarshal(input, &b); err != nil {
 			return []byte{}, ErrParse
 		}
-		result := s.Apply(b)
+		result := s.Apply(ctx, b)
 		if response, err := json.Marshal(result); err != nil {
 			return []byte{}, err
 		} else {
