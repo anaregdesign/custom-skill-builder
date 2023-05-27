@@ -24,7 +24,7 @@ func (s *CustomSkillService) Run() error {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		result, err := s.book.Apply(name, body)
+		result, err := s.book.Apply(c, name, body)
 		if err == skill.ErrNotFound {
 			c.JSON(404, gin.H{"error": err.Error()})
 			return
